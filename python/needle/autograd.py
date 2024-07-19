@@ -13,11 +13,10 @@ TENSOR_COUNTER = 0
 
 # NOTE: we will import numpy as the array_api
 # as the backend for our computations, this line will change in later homeworks
-
 import numpy as array_api
+
 NDArray = numpy.ndarray
 
-from .backend_selection import array_api, NDArray, default_device
 
 class Op:
     """Operator definition."""
@@ -188,7 +187,7 @@ class TensorTuple(Value):
 
     def detach(self):
         """Create a new tensor that shares the data but detaches from the graph."""
-        return TensorTuple.make_const(self.realize_cached_data())
+        return Tuple.make_const(self.realize_cached_data())
 
 
 class Tensor(Value):
@@ -216,7 +215,7 @@ class Tensor(Value):
                     array.numpy(), device=device, dtype=dtype
                 )
         else:
-            device = device if device else default_device()
+            device = device if device else cpu()
             cached_data = Tensor._array_from_numpy(array, device=device, dtype=dtype)
 
         self._init(
@@ -378,11 +377,22 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     node_to_output_grads_list[output_tensor] = [out_grad]
 
     # Traverse graph in reverse topological order given the output_node that we are taking gradient wrt.
-    reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
+    reverse_topo_order: List[Tensor] = list(reversed(find_topo_sort([output_tensor])))
 
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    for i in range(len(reverse_topo_order)):
+        node: Tensor = reverse_topo_order[i]
+        if node not in node_to_output_grads_list:
+            # Disconnected node
+            continue
+
+        node.grad = node_to_output_grads_list[node][0]
+        for j in range(1, len(node_to_output_grads_list[node])):
+            node.grad += node_to_output_grads_list[node][j]
+
+        for k in range(len(node.inputs)):
+            node_to_output_grads_list.setdefault(node.inputs[k], []).append(
+                node.op.gradient_as_tuple(node.grad, node)[k]
+            )
 
 
 def find_topo_sort(node_list: List[Value]) -> List[Value]:
@@ -393,17 +403,22 @@ def find_topo_sort(node_list: List[Value]) -> List[Value]:
     after all its predecessors are traversed due to post-order DFS, we get a topological
     sort.
     """
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    topo_order: List[Value] = []
+    visited = set()
+    for node in node_list:
+        topo_sort_dfs(node, visited, topo_order)
+
+    return topo_order
 
 
 def topo_sort_dfs(node, visited, topo_order):
     """Post-order DFS"""
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    visited.add(node)
+    for input_node in node.inputs:
+        if input_node not in visited:
+            topo_sort_dfs(input_node, visited, topo_order)
 
+    topo_order.append(node)
 
 ##############################
 ####### Helper Methods #######
