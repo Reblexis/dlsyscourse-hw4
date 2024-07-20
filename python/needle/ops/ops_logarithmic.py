@@ -5,7 +5,7 @@ from ..autograd import TensorTuple, TensorTupleOp
 
 from .ops_mathematic import *
 
-import backend_ndarray.ndarray as array_api
+from .. import backend_ndarray as array_api
 
 
 class LogSoftmax(TensorOp):

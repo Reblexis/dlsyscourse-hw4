@@ -13,7 +13,7 @@ TENSOR_COUNTER = 0
 
 # NOTE: we will import numpy as the array_api
 # as the backend for our computations, this line will change in later homeworks
-import backend_ndarray.ndarray as array_api
+from . import backend_ndarray as array_api
 
 NDArray = array_api.NDArray
 

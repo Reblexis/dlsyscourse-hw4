@@ -11,7 +11,7 @@ import numpy
 # NOTE: we will import numpy as the array_api
 # as the backend for our computations, this line will change in later homeworks
 
-import backend_ndarray.ndarray as array_api
+from .. import backend_ndarray as array_api
 
 
 class EWiseAdd(TensorOp):
