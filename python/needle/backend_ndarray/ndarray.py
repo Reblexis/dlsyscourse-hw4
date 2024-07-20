@@ -620,3 +620,6 @@ def tanh(a):
 
 def sum(a, axis=None):
     return a.sum(axis=axis)
+
+def matmul(a, b):
+    return a @ b
