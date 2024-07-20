@@ -298,34 +298,6 @@ void Matmul(const AlignedArray& a, const AlignedArray& b, AlignedArray* out, uin
   }
 }
 
-void Matmul(const AlignedArray& a, const AlignedArray& b, AlignedArray* out, uint32_t m, uint32_t n,
-            uint32_t p) {
-  /**
-   * Multiply two (compact) matrices into an output (also compact) matrix.  For this implementation
-   * you can use the "naive" three-loop algorithm.
-   *
-   * Args:
-   *   a: compact 2D array of size m x n
-   *   b: compact 2D array of size n x p
-   *   out: compact 2D array of size m x p to write the output to
-   *   m: rows of a / out
-   *   n: columns of a / rows of b
-   *   p: columns of b / out
-   */
-
-  /// BEGIN SOLUTION
-  // assert(false && "Not Implemented");
-  std::memset(out->ptr, 0, m * p * ELEM_SIZE);
-  for (size_t i = 0; i < m; i++) {
-    for (size_t j = 0; j < n; j++) {
-      for (size_t k = 0; k < p; k++) {
-        out->ptr[i * p + k] += a.ptr[i * n + j] * b.ptr[j * p + k];
-      }
-    }
-  }
-  /// END SOLUTION
-}
-
 inline void AlignedDot(const float* __restrict__ a,
                        const float* __restrict__ b,
                        float* __restrict__ out) {
@@ -356,6 +328,44 @@ inline void AlignedDot(const float* __restrict__ a,
     for (size_t j = 0; j < TILE; j++) {
       for (size_t k = 0; k < TILE; k++) {
         out[i * TILE + k] += a[i * TILE + j] * b[j * TILE + k];
+      }
+    }
+  }
+  // assert(false && "Not Implemented");
+  /// END SOLUTION
+}
+
+void MatmulTiled(const AlignedArray& a, const AlignedArray& b, AlignedArray* out, uint32_t m,
+                 uint32_t n, uint32_t p) {
+  /**
+   * Matrix multiplication on tiled representations of array.  In this setting, a, b, and out
+   * are all *4D* compact arrays of the appropriate size, e.g. a is an array of size
+   *   a[m/TILE][n/TILE][TILE][TILE]
+   * You should do the multiplication tile-by-tile to improve performance of the array (i.e., this
+   * function should call `AlignedDot()` implemented above).
+   *
+   * Note that this function will only be called when m, n, p are all multiples of TILE, so you can
+   * assume that this division happens without any remainder.
+   *
+   * Args:
+   *   a: compact 4D array of size m/TILE x n/TILE x TILE x TILE
+   *   b: compact 4D array of size n/TILE x p/TILE x TILE x TILE
+   *   out: compact 4D array of size m/TILE x p/TILE x TILE x TILE to write to
+   *   m: rows of a / out
+   *   n: columns of a / rows of b
+   *   p: columns of b / out
+   *
+   */
+  /// BEGIN SOLUTION
+  std::memset(out->ptr, 0, m * p * ELEM_SIZE);
+  uint32_t m1 = m / TILE;
+  uint32_t n1 = n / TILE;
+  uint32_t p1 = p / TILE;
+  for (size_t i = 0; i < m1; i++) {
+    for (size_t j = 0; j < n1; j++) {
+      for (size_t k = 0; k < p1; k++) {
+        // out->ptr[i * p + k] += a.ptr[i * n + j] * b.ptr[j * p + k];
+        AlignedDot(&(a.ptr[i * (n * TILE) + j * (TILE * TILE)]), &(b.ptr[j * (p * TILE) + k * (TILE * TILE)]), &(out->ptr[i * (p * TILE) + k * (TILE * TILE)]));
       }
     }
   }
