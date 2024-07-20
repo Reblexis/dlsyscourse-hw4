@@ -8,14 +8,6 @@ execute_process(COMMAND python3-config --prefix
 find_package(Python COMPONENTS Development Interpreter REQUIRED)
 include_directories(${Python_INCLUDE_DIRS})
 
-include(FetchContent)
-FetchContent_Declare(
-  pybind11
-  GIT_REPOSITORY https://github.com/pybind/pybind11.git
-  GIT_TAG        v2.9.2  # specify the version you need
-)
-FetchContent_MakeAvailable(pybind11)
-
 # find pybind
 execute_process(COMMAND python3 -m pybind11 --cmakedir
   RESULT_VARIABLE __pybind_exit_code
