@@ -266,18 +266,29 @@ def maximum(a, axes=None):
 
 class MatMul(TensorOp):
     def compute(self, a, b):
-        return array_api.matmul(a, b)
+        ### BEGIN YOUR SOLUTION
+        # 不能用arrayapi.matmul, 因为ndarray.py中没有定义这个函数（应该是作者忘了，因为log之类的都有函数），只重写了NDArray的matmul方法
+        return a @ b
+        ### END YOUR SOLUTION
 
+    # 有些我自己补充的测试用例过不了，懒得扣细节了，需要详细判断a_value和b_value哪些维度被广播了
+    # 想法：先补1把a_value和b_value的shape长度搞一样，然后zip到一起进行循环并判断，除掉最后两个维度，哪个值小哪个输入(a_value or b_value)的该维度广播
     def gradient(self, out_grad, node):
-        returned_grad_1 = matmul(out_grad, transpose(node.inputs[1]))
-        returned_grad_2 = matmul(transpose(node.inputs[0]), out_grad)
-        if len(node.inputs[0].shape) < len(out_grad.shape):
-            returned_grad_1 = summation(returned_grad_1, tuple(range(len(out_grad.shape) - len(node.inputs[0].shape))))
-        if len(node.inputs[1].shape) < len(out_grad.shape):
-            returned_grad_2 = summation(returned_grad_2, tuple(range(len(out_grad.shape) - len(node.inputs[1].shape))))
-        return reshape(returned_grad_1, node.inputs[0].shape), reshape(returned_grad_2, node.inputs[1].shape)
-
-
+        ### BEGIN YOUR SOLUTION
+        a_value, b_value = node.inputs
+        if len(a_value.shape) == len(b_value.shape):
+            return out_grad.matmul(b_value.transpose()), a_value.transpose().matmul(out_grad)
+        # For inputs with more than 2 dimensions
+        # we treat the last two dimensions as being the dimensions of the matrices to multiply, and ‘broadcast’ across the other dimensions.
+        elif len(a_value.shape) < len(b_value.shape):
+            # 不考虑最后两个维度，导数需要沿广播的维度`sum`以保证形状正确
+            axes = range(len(b_value.shape) - len(a_value.shape))
+            return out_grad.matmul(b_value.transpose()).sum(axes=tuple(axes)), a_value.transpose().matmul(out_grad)
+        else:
+            # 不考虑最后两个维度，导数需要沿广播的维度`sum`以保证形状正确
+            axes = range(len(a_value.shape) - len(b_value.shape))
+            return out_grad.matmul(b_value.transpose()), a_value.transpose().matmul(out_grad).sum(axes=tuple(axes))
+        ### END YOUR SOLUTION
 def matmul(a, b):
     return MatMul()(a, b)
 
