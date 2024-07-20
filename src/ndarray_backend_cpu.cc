@@ -323,16 +323,13 @@ inline void AlignedDot(const float* __restrict__ a,
   b = (const float*)__builtin_assume_aligned(b, TILE * ELEM_SIZE);
   out = (float*)__builtin_assume_aligned(out, TILE * ELEM_SIZE);
 
-  /// BEGIN SOLUTION
-  for (size_t i = 0; i < TILE; i++) {
-    for (size_t j = 0; j < TILE; j++) {
-      for (size_t k = 0; k < TILE; k++) {
-        out[i * TILE + k] += a[i * TILE + j] * b[j * TILE + k];
+  for (int32_t i = 0; i < TILE; i++){
+    for(int32_t j = 0; j < TILE; j++){
+      for(int32_t k = 0; k < TILE; k++){
+          out[i * TILE + j] += a[i * TILE + k] * b[k * TILE + j];
       }
     }
   }
-  // assert(false && "Not Implemented");
-  /// END SOLUTION
 }
 
 void MatmulTiled(const AlignedArray& a, const AlignedArray& b, AlignedArray* out, uint32_t m,
@@ -343,7 +340,7 @@ void MatmulTiled(const AlignedArray& a, const AlignedArray& b, AlignedArray* out
    *   a[m/TILE][n/TILE][TILE][TILE]
    * You should do the multiplication tile-by-tile to improve performance of the array (i.e., this
    * function should call `AlignedDot()` implemented above).
-   *
+   threadIdx.x;*
    * Note that this function will only be called when m, n, p are all multiples of TILE, so you can
    * assume that this division happens without any remainder.
    *
@@ -356,21 +353,18 @@ void MatmulTiled(const AlignedArray& a, const AlignedArray& b, AlignedArray* out
    *   p: columns of b / out
    *
    */
-  /// BEGIN SOLUTION
+
   std::memset(out->ptr, 0, m * p * ELEM_SIZE);
-  uint32_t m1 = m / TILE;
-  uint32_t n1 = n / TILE;
-  uint32_t p1 = p / TILE;
-  for (size_t i = 0; i < m1; i++) {
-    for (size_t j = 0; j < n1; j++) {
-      for (size_t k = 0; k < p1; k++) {
-        // out->ptr[i * p + k] += a.ptr[i * n + j] * b.ptr[j * p + k];
-        AlignedDot(&(a.ptr[i * (n * TILE) + j * (TILE * TILE)]), &(b.ptr[j * (p * TILE) + k * (TILE * TILE)]), &(out->ptr[i * (p * TILE) + k * (TILE * TILE)]));
+
+  for(int32_t i = 0; i < m / TILE; i++){
+    for(int32_t j = 0; j < p / TILE; j++){
+      for(int32_t k = 0; k < n / TILE; k++){
+        AlignedDot(a.ptr + (i * n / TILE + k) * TILE * TILE,
+                   b.ptr + (k * p / TILE + j) * TILE * TILE,
+                   out->ptr + (i * p / TILE + j) * TILE * TILE);
       }
     }
   }
-  // assert(false && "Not Implemented");
-  /// END SOLUTION
 }
 
 void ReduceMax(const AlignedArray& a, AlignedArray* out, size_t reduce_size) {
