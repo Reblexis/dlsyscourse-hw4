@@ -319,9 +319,9 @@ inline void AlignedDot(const float* __restrict__ a,
    *   out: compact 2D array of size TILE x TILE to write to
    */
 
-  a = (const float*)__builtin_assume_aligned(a, TILE * ELEM_SIZE);
-  b = (const float*)__builtin_assume_aligned(b, TILE * ELEM_SIZE);
-  out = (float*)__builtin_assume_aligned(out, TILE * ELEM_SIZE);
+  a = (const float*)__builtin_assume_aligned(a, TILE * TILE * ELEM_SIZE);
+  b = (const float*)__builtin_assume_aligned(b, TILE * TILE * ELEM_SIZE);
+  out = (float*)__builtin_assume_aligned(out, TILE * TILE * ELEM_SIZE);
 
   for (int32_t i = 0; i < TILE; i++){
     for(int32_t j = 0; j < TILE; j++){
