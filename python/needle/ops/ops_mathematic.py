@@ -266,7 +266,7 @@ def maximum(a, axes=None):
 
 class MatMul(TensorOp):
     def compute(self, a, b):
-        return array_api.matmul(a, b)
+        return a@b
 
     def gradient(self, out_grad, node):
         returned_grad_1 = matmul(out_grad, transpose(node.inputs[1]))
