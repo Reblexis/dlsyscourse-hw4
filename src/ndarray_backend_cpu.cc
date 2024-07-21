@@ -354,7 +354,7 @@ void MatmulTiled(const AlignedArray& a, const AlignedArray& b, AlignedArray* out
    *
    */
 
-  std::memset(out->ptr, 0, m * p * ELEM_SIZE);
+  std::memset(out->ptr, 1, m * p * ELEM_SIZE);
 
   for(int32_t i = 0; i < m / TILE; i++){
     for(int32_t j = 0; j < p / TILE; j++){

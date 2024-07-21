@@ -550,30 +550,24 @@ class NDArray:
     def reduce_view_out(self, axis):
         """Return a view to the array set up for reduction functions and output array."""
         if axis is None:
-            view = self.reshape((1,) * (self.ndim - 1) + (prod(self.shape),))
-            out = NDArray.make((1,) * self.ndim, device=self.device)
-        else:
-            if isinstance(axis, (tuple, list)):
-                assert len(axis) == 1, "Only support reduction over a single axis"
-                axis = axis[0]
+            axis = tuple(range(self.ndim))
 
-            view = self.permute(
-                tuple([a for a in range(self.ndim) if a != axis]) + (axis,)
-            )
-            out = NDArray.make(
-                tuple([1 if i == axis else s for i, s in enumerate(self.shape)]),
-                device=self.device,
-            )
-        return view, out
+        if isinstance(axis, (int)):
+            axis = (axis,)
+
+        view = self.permute(tuple([a for a in range(self.ndim) if a not in axis] + axis))
+        out = NDArray.make(tuple([1 if i in axis else s for i, s in enumerate(self.shape)]), device=self.device)
+        reduce_size = prod([self.shape[i] for i in axis])
+        return view, out, reduce_size
 
     def sum(self, axis=None):
-        view, out = self.reduce_view_out(axis)
-        self.device.reduce_sum(view.compact()._handle, out._handle, view.shape[-1])
+        view, out, reduce_size = self.reduce_view_out(axis)
+        self.device.reduce_sum(view.compact()._handle, out._handle, reduce_size)
         return out
 
     def max(self, axis=None):
-        view, out = self.reduce_view_out(axis)
-        self.device.reduce_max(view.compact()._handle, out._handle, view.shape[-1])
+        view, out, reduce_size = self.reduce_view_out(axis)
+        self.device.reduce_max(view.compact()._handle, out._handle, reduce_size)
         return out
 
 

@@ -266,7 +266,7 @@ def maximum(a, axes=None):
 
 class MatMul(TensorOp):
     def compute(self, a, b):
-        return a@b
+        return a @ b
 
     def gradient(self, out_grad, node):
         returned_grad_1 = matmul(out_grad, transpose(node.inputs[1]))
@@ -329,3 +329,18 @@ class ReLU(TensorOp):
 
 def relu(a):
     return ReLU()(a)
+
+
+class Tanh(TensorOp):
+    def compute(self, a):
+        return array_api.tanh(a)
+
+    def gradient(self, out_grad, node):
+        return out_grad * (1 - tanh(node.inputs[0]) ** 2)
+
+
+def tanh(a):
+    return Tanh()(a)
+
+
+
