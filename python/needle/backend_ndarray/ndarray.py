@@ -373,7 +373,6 @@ class NDArray:
             ]
         )
 
-
         new_shape = tuple(
             [(s.stop - s.start + s.step - 1) // s.step for s in idxs]
         )
@@ -635,6 +634,9 @@ def exp(a):
 
 def tanh(a):
     return a.tanh()
+
+def max(a, axis=None):
+    return a.max(axis=axis)
 
 
 def sum(a, axis=None):
