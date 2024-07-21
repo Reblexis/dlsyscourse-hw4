@@ -368,7 +368,8 @@ class NDArray:
                 for i, s in enumerate(idxs)
             ]
         )
-        assert len(idxs) == self.ndim, "Need indexes equal to number of dimensions"
+        if len(idxs) != self.ndim:
+            idxs = idxs + (slice(None),) * (self.ndim - len(idxs))
 
         new_shape = tuple(
             [(s.stop - s.start + s.step - 1) // s.step for s in idxs]
