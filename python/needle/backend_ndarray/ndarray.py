@@ -568,12 +568,12 @@ class NDArray:
         reduce_size = prod([self.shape[i] for i in axis])
         return view, out, reduce_size
 
-    def sum(self, axis=None, keepDims=True):
+    def sum(self, axis=None, keepdims=True):
         view, out, reduce_size = self.reduce_view_out(axis)
         self.device.reduce_sum(view.compact()._handle, out._handle, reduce_size)
         return out
 
-    def max(self, axis=None, keepDims=True):
+    def max(self, axis=None, keepdims=True):
         view, out, reduce_size = self.reduce_view_out(axis)
         self.device.reduce_max(view.compact()._handle, out._handle, reduce_size)
         return out
@@ -637,12 +637,12 @@ def exp(a):
 def tanh(a):
     return a.tanh()
 
-def max(a, axis=None, keepDims=True):
-    return a.max(axis=axis, keepDims=keepDims)
+def max(a, axis=None, keepdims=True):
+    return a.max(axis=axis, keepDims=keepdims)
 
 
-def sum(a, axis=None, keepDims=True):
-    return a.sum(axis=axis, keepDims=keepDims)
+def sum(a, axis=None, keepdims=True):
+    return a.sum(axis=axis, keepDims=keepdims)
 
 def matmul(a, b):
     return a @ b
