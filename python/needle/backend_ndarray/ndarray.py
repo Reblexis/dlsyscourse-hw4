@@ -550,7 +550,7 @@ class NDArray:
             return out
 
     ### Reductions, i.e., sum/max over all element or over given axis
-    def reduce_view_out(self, axis):
+    def reduce_view_out(self, axis, keepDims=True):
         """Return a view to the array set up for reduction functions and output array."""
         if axis is None:
             axis = [i for i in range(self.ndim)]
@@ -562,16 +562,18 @@ class NDArray:
             axis = list(axis)
 
         view = self.permute(tuple([a for a in range(self.ndim) if a not in axis] + axis))
-        out = NDArray.make(tuple([1 if i in axis else s for i, s in enumerate(self.shape)]), device=self.device)
+        out_shape = tuple([1 if i in axis and keepDims else s for i, s in enumerate(self.shape)]) if keepDims \
+            else tuple([s for i, s in enumerate(self.shape) if i not in axis])
+        out = NDArray.make(out_shape, device=self.device)
         reduce_size = prod([self.shape[i] for i in axis])
         return view, out, reduce_size
 
-    def sum(self, axis=None):
+    def sum(self, axis=None, keepDims=True):
         view, out, reduce_size = self.reduce_view_out(axis)
         self.device.reduce_sum(view.compact()._handle, out._handle, reduce_size)
         return out
 
-    def max(self, axis=None):
+    def max(self, axis=None, keepDims=True):
         view, out, reduce_size = self.reduce_view_out(axis)
         self.device.reduce_max(view.compact()._handle, out._handle, reduce_size)
         return out
@@ -635,12 +637,12 @@ def exp(a):
 def tanh(a):
     return a.tanh()
 
-def max(a, axis=None):
-    return a.max(axis=axis)
+def max(a, axis=None, keepDims=True):
+    return a.max(axis=axis, keepDims=keepDims)
 
 
-def sum(a, axis=None):
-    return a.sum(axis=axis)
+def sum(a, axis=None, keepDims=True):
+    return a.sum(axis=axis, keepDims=keepDims)
 
 def matmul(a, b):
     return a @ b
