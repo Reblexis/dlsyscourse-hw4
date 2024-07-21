@@ -32,7 +32,7 @@ class LogSumExp(TensorOp):
         ### BEGIN YOUR SOLUTION
         max_Z = array_api.max(Z, axis=self.axes, keepdims=False)
         max_Z_keepdim = array_api.max(Z, axis=self.axes, keepdims=True)
-        subbed = Z - max_Z_keepdim
+        subbed = Z - array_api.broadcast_to(max_Z_keepdim, Z.shape)
         return array_api.log(array_api.sum(array_api.exp(subbed), axis=self.axes, keepdims=False)) + max_Z
         ### END YOUR SOLUTION
 
