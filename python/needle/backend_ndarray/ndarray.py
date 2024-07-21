@@ -638,11 +638,11 @@ def tanh(a):
     return a.tanh()
 
 def max(a, axis=None, keepdims=True):
-    return a.max(axis=axis, keepDims=keepdims)
+    return a.max(axis=axis, keepdims=keepdims)
 
 
 def sum(a, axis=None, keepdims=True):
-    return a.sum(axis=axis, keepDims=keepdims)
+    return a.sum(axis=axis, keepdims=keepdims)
 
 def matmul(a, b):
     return a @ b
