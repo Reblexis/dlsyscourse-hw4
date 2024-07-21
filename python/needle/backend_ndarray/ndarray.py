@@ -550,10 +550,13 @@ class NDArray:
     def reduce_view_out(self, axis):
         """Return a view to the array set up for reduction functions and output array."""
         if axis is None:
-            axis = tuple(range(self.ndim))
+            axis = [i for i in range(self.ndim)]
 
-        if isinstance(axis, (int)):
-            axis = (axis,)
+        if isinstance(axis, int):
+            axis = [axis]
+
+        if isinstance(axis, tuple):
+            axis = list(axis)
 
         view = self.permute(tuple([a for a in range(self.ndim) if a not in axis] + axis))
         out = NDArray.make(tuple([1 if i in axis else s for i, s in enumerate(self.shape)]), device=self.device)
@@ -569,6 +572,24 @@ class NDArray:
         view, out, reduce_size = self.reduce_view_out(axis)
         self.device.reduce_max(view.compact()._handle, out._handle, reduce_size)
         return out
+
+    def stack(self, other_arrays, axis=0):
+        """Stack arrays along a new axis."""
+        arrays = [self] + other_arrays
+        new_shape = (len(arrays), ) + arrays[0].shape
+        out = NDArray.make(new_shape, device=self.device)
+
+        for i, a in enumerate(arrays):
+            out[i] = a
+
+        permutation = list(range(1, len(new_shape)))
+        permutation.insert(axis, 0)
+        return out.permute(tuple(permutation))
+
+    def split(self, axis):
+        """Inversion of stack. Splits an ndarray into a tuple of ndarrays."""
+        prepared = self.permute((axis,) + tuple(range(axis)) + tuple(range(axis + 1, self.ndim)))
+        return tuple(prepared[i] for i in range(self.shape[axis]))
 
 
 def array(a, dtype="float32", device=None):
@@ -617,3 +638,11 @@ def sum(a, axis=None):
 
 def matmul(a, b):
     return a @ b
+
+def stack(arrays, axis=0):
+    return arrays[0].stack(arrays[1:], axis=axis)
+
+def split(array, axis):
+    return array.split(axis)
+
+
