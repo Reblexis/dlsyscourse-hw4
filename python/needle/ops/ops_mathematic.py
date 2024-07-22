@@ -377,7 +377,7 @@ class Split(TensorTupleOp):
         self.axis = axis
 
     def compute(self, A):
-        return TensorTuple(array_api.split(A, self.axis))
+        return array_api.split(A, self.axis)
 
     def gradient(self, out_grad, node):
         return stack(out_grad, self.axis)
