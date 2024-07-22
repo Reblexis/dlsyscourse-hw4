@@ -594,7 +594,7 @@ class NDArray:
     def split(self, axis):
         """Inversion of stack. Splits an ndarray into a tuple of ndarrays."""
         prepared = self.permute((axis,) + tuple(range(axis)) + tuple(range(axis + 1, self.ndim)))
-        return tuple(prepared[i] for i in range(self.shape[axis]))
+        return tuple(prepared[i].compact().reshape(tuple(prepared[i].shape[1:])) for i in range(self.shape[axis]))
 
 
 def array(a, dtype="float32", device=None):
