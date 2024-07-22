@@ -653,4 +653,6 @@ def stack(arrays, axis=0):
 def split(array, axis):
     return array.split(axis)
 
+def transpose(array, permutation):
+    return array.permute(permutation)
 
