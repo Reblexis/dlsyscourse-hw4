@@ -337,13 +337,8 @@ class Tanh(TensorOp):
         return array_api.tanh(a)
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
         a = node.inputs[0]
-        # -Tensor+scalar会正确调用Tensor类重写的函数
-        # 而scalar-Tensor也会调用Tensor类重写的__sub__函数，此时函数的other参数仍然会是scalar！（因为Tensor类编写了__rsub__=__sub__，也不知道为什么这样处理）
-        # 结合重写的__sub__函数的实现，会导致结果正好为相反数（Tensor-scalar）
-        # https://stackoverflow.com/questions/35736193/what-is-a-typical-instance-of-using-rsub-method-in-python
-        return out_grad * (-tanh(a) ** 2 + 1)
+        return (out_grad * (1 - tanh(a) ** 2), )
 
 
 def tanh(a):
