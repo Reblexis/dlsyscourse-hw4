@@ -337,8 +337,7 @@ class Tanh(TensorOp):
         return array_api.tanh(a)
 
     def gradient(self, out_grad, node):
-        a = node.inputs[0]
-        return (out_grad * (1 - tanh(a) ** 2), )
+        return out_grad * (-tanh(node.inputs[0]) ** 2 + 1),
 
 
 def tanh(a):
