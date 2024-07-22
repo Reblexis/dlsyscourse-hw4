@@ -21,23 +21,38 @@ class CIFAR10Dataset(Dataset):
         X - numpy array of images
         y - numpy array of labels
         """
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+
+        if not os.path.exists(base_folder):
+            raise FileNotFoundError(f"{base_folder} not found.")
+
+        with open(f"{base_folder}/batches.meta", "rb") as f:
+            self.label_names = pickle.load(f, encoding="bytes")[b"label_names"]
+
+        if train:
+            self.X, self.y = np.zeros((50000, 3, 32, 32), dtype=np.float32), np.zeros((50000,), dtype=np.int32)
+            for i in range(5):
+                with open(f"{base_folder}/data_batch_{i+1}", "rb") as f:
+                    data = pickle.load(f, encoding="bytes")
+                    self.X[i*10000:(i+1)*10000] = data[b"data"].reshape(-1, 3, 32, 32) / 255.
+                    self.y[i*10000:(i+1)*10000] = np.array(data[b"labels"], dtype=np.int32)
+
+        else:
+            self.X, self.y = np.zeros((10000, 3, 32, 32), dtype=np.float32), np.zeros((10000,), dtype=np.int32)
+            with open(f"{base_folder}/test_batch", "rb") as f:
+                data = pickle.load(f, encoding="bytes")
+                self.X = data[b"data"].reshape(10000, 3, 32, 32) / 255.
+                self.y = np.array(data[b"labels"], dtype=np.int32)
 
     def __getitem__(self, index) -> object:
         """
         Returns the image, label at given index
         Image should be of shape (3, 32, 32)
         """
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+
+        return self.X[index], self.y[index]
 
     def __len__(self) -> int:
         """
         Returns the total number of examples in the dataset
         """
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return self.X.shape[0]
