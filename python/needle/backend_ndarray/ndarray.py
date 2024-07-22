@@ -143,10 +143,6 @@ class NDArray:
         array._offset = offset
         array._device = device if device is not None else default_device()
         if handle is None:
-            print(type(array))
-            print(array)
-            print(array.device)
-            print(array.device.Array)
             array._handle = array.device.Array(prod(shape))
         else:
             array._handle = handle
