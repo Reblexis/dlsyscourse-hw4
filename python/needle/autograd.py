@@ -13,7 +13,7 @@ TENSOR_COUNTER = 0
 
 # NOTE: we will import numpy as the array_api
 # as the backend for our computations, this line will change in later homeworks
-from . import backend_ndarray as array_api
+from .backend_selection import array_api, NDArray, default_device
 
 NDArray = array_api.NDArray
 
@@ -24,6 +24,7 @@ class Op:
     def __call__(self, *args):
         raise NotImplementedError()
 
+    # 不同的TensorOp重写以下两个方法
     def compute(self, *args: Tuple[NDArray]):
         """Calculate forward pass of operator.
 
@@ -215,7 +216,7 @@ class Tensor(Value):
                     array.numpy(), device=device, dtype=dtype
                 )
         else:
-            device = device if device else cpu()
+            device = device if device else default_device()
             cached_data = Tensor._array_from_numpy(array, device=device, dtype=dtype)
 
         self._init(
