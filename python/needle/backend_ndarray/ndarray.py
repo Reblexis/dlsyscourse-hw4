@@ -569,12 +569,12 @@ class NDArray:
         return view, out, reduce_size
 
     def sum(self, axis=None, keepdims=True):
-        view, out, reduce_size = self.reduce_view_out(axis)
+        view, out, reduce_size = self.reduce_view_out(axis, keepdims)
         self.device.reduce_sum(view.compact()._handle, out._handle, reduce_size)
         return out
 
     def max(self, axis=None, keepdims=True):
-        view, out, reduce_size = self.reduce_view_out(axis)
+        view, out, reduce_size = self.reduce_view_out(axis, keepdims)
         self.device.reduce_max(view.compact()._handle, out._handle, reduce_size)
         return out
 

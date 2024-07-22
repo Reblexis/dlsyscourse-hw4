@@ -220,12 +220,14 @@ def implicit_broadcast(a, target_shape, backward=True):
 
 class Summation(TensorOp):
     def __init__(self, axes: Optional[tuple] = None):
+        if isinstance(axes, int):
+            axes = (axes,)
         self.axes = axes
 
     def compute(self, a):
         if self.axes is None:
             self.axes = tuple(range(len(a.shape)))
-        return array_api.sum(a, self.axes)
+        return array_api.sum(a, self.axes, False)
 
     def gradient(self, out_grad, node):
         broadcast_shape = list(node.inputs[0].shape)
@@ -246,7 +248,7 @@ class Maximum(TensorOp):
     def compute(self, a):
         if self.axes is None:
             self.axes = tuple(range(len(a.shape)))
-        return array_api.max(a, self.axes)
+        return array_api.max(a, self.axes, keepdims=False)
 
     def gradient(self, out_grad, node):
         broadcast_shape = list(node.inputs[0].shape)

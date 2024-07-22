@@ -180,6 +180,8 @@ SUMMATION_PARAMETERS = [((1, 1, 1), None),
 def test_summation(shape, axes, device):
     _A = np.random.randn(*shape).astype(np.float32)
     A = ndl.Tensor(nd.array(_A), device=device)
+    res_ndl = ndl.summation(A, axes=axes).numpy()
+    res_np = np.sum(_A, axes)
     np.testing.assert_allclose(np.sum(_A, axes), ndl.summation(A, axes=axes).numpy(), atol=1e-5, rtol=1e-5)
 
 
