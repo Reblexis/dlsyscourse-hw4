@@ -550,7 +550,7 @@ class NDArray:
             return out
 
     ### Reductions, i.e., sum/max over all element or over given axis
-    def reduce_view_out(self, axis, keepDims=True):
+    def reduce_view_out(self, axis, keepdims=True):
         """Return a view to the array set up for reduction functions and output array."""
         if axis is None:
             axis = [i for i in range(self.ndim)]
@@ -562,7 +562,7 @@ class NDArray:
             axis = list(axis)
 
         view = self.permute(tuple([a for a in range(self.ndim) if a not in axis] + axis))
-        out_shape = tuple([1 if i in axis and keepDims else s for i, s in enumerate(self.shape)]) if keepDims \
+        out_shape = tuple([1 if i in axis and keepdims else s for i, s in enumerate(self.shape)]) if keepdims \
             else tuple([s for i, s in enumerate(self.shape) if i not in axis])
         out = NDArray.make(out_shape, device=self.device)
         reduce_size = prod([self.shape[i] for i in axis])
@@ -596,6 +596,52 @@ class NDArray:
         prepared = self.permute((axis,) + tuple(range(axis)) + tuple(range(axis + 1, self.ndim)))
         return tuple(prepared[i].compact().reshape(tuple(prepared[i].shape[1:])) for i in range(self.shape[axis]))
 
+    def flip(self, axes):
+        """
+        Flip this ndarray along the specified axes.
+        Note: compact() before returning.
+        """
+        new_strides = tuple([self.strides[i] if i not in axes else -self.strides[i] for i in range(self.ndim)])
+        new_offset = 0
+        for i in axes:
+            new_offset += (self.shape[i] - 1) * self.strides[i]
+
+        return NDArray.make(self.shape, strides=new_strides, device=self.device, handle=self._handle, offset=self._offset + new_offset).compact()
+
+    def pad(self, axes):
+        """
+        Pad this ndarray by zeros by the specified amount in `axes`,
+        which lists for _all_ axes the left and right padding amount, e.g.,
+        axes = ( (0, 0), (1, 1), (0, 0)) pads the middle axis with a 0 on the left and right side.
+        """
+        new_shape = tuple([s + axes[i][0]+axes[i][1] for i, s in enumerate(self.shape)])
+        out = NDArray.make(new_shape, device=self.device)
+        slices = tuple(slice(axes[i][0], axes[i][0] + s) for i, s in enumerate(self.shape))
+        out[slices] = self
+        return out
+
+    def dilate(self, axes: tuple, dilation: int):
+        """
+        Dilate this ndarray by inserting zeros in the specified axes by `dilation` times.
+        """
+        dilation+=1
+        new_shape = tuple([s * dilation if i in axes else s for i, s in enumerate(self.shape)])
+        out = NDArray.make(new_shape, device=self.device)
+        out.fill(0)
+        slices = tuple(slice(0, s, dilation) if i in axes else slice(0, s) for i, s in enumerate(out.shape))
+        out[slices] = self
+        return out
+
+    def undilate(self, axes: tuple, dilation: int):
+        """
+        Undilate this ndarray by taking every `dilation`-th element in the specified axes.
+        """
+        dilation+=1
+        new_shape = tuple([s // dilation if i in axes else s for i, s in enumerate(self.shape)])
+        out = NDArray.make(new_shape, device=self.device)
+        slices = tuple(slice(0, s, dilation) if i in axes else slice(0, s) for i, s in enumerate(self.shape))
+        out = self[slices]
+        return out
 
 def array(a, dtype="float32", device=None):
     """Convenience methods to match numpy a bit more closely."""
@@ -656,3 +702,14 @@ def split(array, axis):
 def transpose(array, permutation):
     return array.permute(permutation)
 
+def flip(a, axes):
+    return a.flip(axes)
+
+def pad(a, axes):
+    return a.pad(axes)
+
+def dilate(a, axes, dilation):
+    return a.dilate(axes, dilation)
+
+def undilate(a, axes, dilation):
+    return a.undilate(axes, dilation)
