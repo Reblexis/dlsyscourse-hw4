@@ -445,7 +445,7 @@ def test_op_conv(Z_shape, W_shape, stride, padding, backward, device):
     if backward:
         assert err1 < 1e-2, "input grads match"
         assert err2 < 1e-2, "weight grads match"
-    assert err3 < 1e-1, "outputs match %s, %s" % (y2, out2)
+    assert err3 < 1e-1, "outputs match %s, %s, padding: %s, stride: %s" % (y2, out2, padding, stride)
 
 
 @pytest.mark.parametrize("device", _DEVICES)
@@ -673,10 +673,3 @@ def submit_resnet9():
     model = ResNet9(device=device, dtype="float32")
     out = one_iter_of_cifar10_training(dataloader, model, niter=2, opt=ndl.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.0001), device=device)
     MugradeSubmit(ndl.Tensor(list(out)))
-
-
-if __name__ == "__main__":
-    submit_conv_forward()
-    submit_conv_backward()
-    submit_new_ops()
-    submit_resnet9()

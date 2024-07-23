@@ -527,7 +527,7 @@ class NDArray:
             def tile(a, tile):
                 return a.as_strided(
                     (a.shape[0] // tile, a.shape[1] // tile, tile, tile),
-                    (a.shape[1] * tile, tile, self.shape[1], 1),
+                    (a.shape[1] * tile, tile, a.shape[1], 1),
                 )
 
             t = self.device.__tile_size__
@@ -614,8 +614,9 @@ class NDArray:
         which lists for _all_ axes the left and right padding amount, e.g.,
         axes = ( (0, 0), (1, 1), (0, 0)) pads the middle axis with a 0 on the left and right side.
         """
-        new_shape = tuple([s + axes[i][0]+axes[i][1] for i, s in enumerate(self.shape)])
+        new_shape = tuple([s + axes[i][0] + axes[i][1] for i, s in enumerate(self.shape)])
         out = NDArray.make(new_shape, device=self.device)
+        out.fill(0)
         slices = tuple(slice(axes[i][0], axes[i][0] + s) for i, s in enumerate(self.shape))
         out[slices] = self
         return out
@@ -637,8 +638,6 @@ class NDArray:
         Undilate this ndarray by taking every `dilation`-th element in the specified axes.
         """
         dilation+=1
-        new_shape = tuple([s // dilation if i in axes else s for i, s in enumerate(self.shape)])
-        out = NDArray.make(new_shape, device=self.device)
         slices = tuple(slice(0, s, dilation) if i in axes else slice(0, s) for i, s in enumerate(self.shape))
         out = self[slices]
         return out
