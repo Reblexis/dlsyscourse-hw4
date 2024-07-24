@@ -103,7 +103,10 @@ class Linear(Module):
 
 class Flatten(Module):
     def forward(self, X) -> Tensor:
-        return ops.reshape(X, (X.shape[0], -1))
+        shape_product = 1
+        for dim in X.shape[1:]:
+            shape_product *= dim
+        return ops.reshape(X, (X.shape[0], shape_product))
 
 
 class ReLU(Module):
@@ -153,7 +156,20 @@ class BatchNorm1d(Module):
             self.running_var = (self.momentum * variance + (1 - self.momentum) * self.running_var).data
 
         x_hat = (x - mean_broadcasted) / ops.implicit_broadcast((variance + self.eps) ** (1 / 2), x.shape, False)
-        return x_hat * ops.implicit_broadcast(self.weight, x.shape, False) + ops.implicit_broadcast(self.bias, x.shape, False)
+        return x_hat * ops.implicit_broadcast(self.weight, x.shape, False) + ops.implicit_broadcast(self.bias, x.shape,
+                                                                                                    False)
+
+
+class BatchNorm2d(BatchNorm1d):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def forward(self, x: Tensor):
+        # nchw -> nhcw -> nhwc
+        s = x.shape
+        _x = x.transpose((1, 2)).transpose((2, 3)).reshape((s[0] * s[2] * s[3], s[1]))
+        y = super().forward(_x).reshape((s[0], s[2], s[3], s[1]))
+        return y.transpose((2, 3)).transpose((1, 2))
 
 
 class LayerNorm1d(Module):
@@ -170,7 +186,8 @@ class LayerNorm1d(Module):
         expectation = ops.implicit_broadcast(ops.summation(x, axes=(1,)) / self.dim, x.shape)
         variance = ops.summation((x - expectation) ** 2, axes=(1,)) / self.dim
         x_hat = (x - expectation) / ops.implicit_broadcast((variance + self.eps) ** (1 / 2), x.shape)
-        return x_hat * ops.broadcast_to(ops.reshape(self.weight, (1, self.dim)), (x.shape[0], self.dim)) + ops.broadcast_to(
+        return x_hat * ops.broadcast_to(ops.reshape(self.weight, (1, self.dim)),
+                                        (x.shape[0], self.dim)) + ops.broadcast_to(
             ops.reshape(self.bias, (1, self.dim)), (x.shape[0], self.dim))
 
 
@@ -189,7 +206,6 @@ class Dropout(Module):
         else:
             return x
         ### END YOUR SOLUTION
-
 
 
 class Residual(Module):

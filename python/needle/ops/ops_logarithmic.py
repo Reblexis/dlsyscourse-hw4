@@ -39,7 +39,10 @@ class LogSumExp(TensorOp):
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
         Z = node.inputs[0]
-        exp_t = exp(Z - Z.realize_cached_data().max(axis=self.axes, keepdims=True))
+
+        # whats the new shape after applying maximum with keepdims=true at self.axis
+        new_shape = tuple([1 if i in self.axes else Z.shape[i] for i in range(len(Z.shape))])
+        exp_t = exp(Z - broadcast_to(reshape(maximum(Z, axes=self.axes), new_shape), Z.shape))
         sum_t = summation(exp_t, axes=self.axes)
 
         g1 = out_grad / sum_t

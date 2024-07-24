@@ -7,17 +7,58 @@ import numpy as np
 np.random.seed(0)
 
 
+class ConvBN(nn.Module):
+    def __init__(self, a, b, k, s, device=None, dtype="float32"):
+        super().__init__()
+
+        self.conv = nn.Conv(a, b, k, s, device=device, dtype=dtype)
+        self.bn = nn.BatchNorm2d(b, device=device, dtype=dtype) # maybe here mistake in incorrect dim
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.relu(x)
+        return x
+
+
 class ResNet9(ndl.nn.Module):
     def __init__(self, device=None, dtype="float32"):
         super().__init__()
-        ### BEGIN YOUR SOLUTION ###
-        raise NotImplementedError() ###
-        ### END YOUR SOLUTION
+        self.convbn1 = ConvBN(3, 16, 7, 4, device=device, dtype=dtype)
+        self.convbn2 = ConvBN(16, 32, 3, 2, device=device, dtype=dtype)
+        self.res1 = nn.Residual(
+            nn.Sequential(
+                ConvBN(32, 32, 3, 1, device=device, dtype=dtype),
+                ConvBN(32, 32, 3, 1, device=device, dtype=dtype)
+            )
+        )
+        self.convbn3 = ConvBN(32, 64, 3, 2, device=device, dtype=dtype)
+        self.convbn4 = ConvBN(64, 128, 3, 2, device=device, dtype=dtype) # 32 in channels??
+        self.res2 = nn.Residual(
+            nn.Sequential(
+                ConvBN(128, 128, 3, 1, device=device, dtype=dtype),
+                ConvBN(128, 128, 3, 1, device=device, dtype=dtype)
+            )
+        )
+        self.flatten = nn.Flatten()
+        self.linear = nn.Linear(128, 128, device=device, dtype=dtype)
+        self.relu1 = nn.ReLU()
+        self.linear2 = nn.Linear(128, 10, device=device, dtype=dtype)
 
     def forward(self, x):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        assert isinstance(x, ndl.Tensor)
+        x = self.convbn1(x)
+        x = self.convbn2(x)
+        x = self.res1(x)
+        x = self.convbn3(x)
+        x = self.convbn4(x)
+        x = self.res2(x)
+        x = self.flatten(x)
+        x = self.linear(x)
+        x = self.relu1(x)
+        x = self.linear2(x)
+        return x
 
 
 class LanguageModel(nn.Module):
