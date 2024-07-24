@@ -467,8 +467,6 @@ class Conv(TensorOp):
         padding_X_grad = W.shape[0] - 1 - self.padding
         padding_W_grad = self.padding
 
-        if self.stride > 1:
-            pass
         X_grad = conv(out_grad, W_permuted_X_grad, 1, padding_X_grad)
         W_grad = conv(X_permuted_W_grad, out_permuted_W_grad, 1, padding_W_grad)
         W_grad = transpose(transpose(W_grad, (1, 0)), (1, 2)) # (C_in, K, K, C_out) -> (K, K, C_in, C_out)
