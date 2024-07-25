@@ -285,7 +285,7 @@ def epoch_general_ptb(data, model, seq_len=40, loss_fn=nn.SoftmaxLoss(), opt=Non
                 pass
             opt.step()
 
-        print(f"Progress: {total} / {data.shape[0] * seq_len}", end="\r")
+        print(f"Progress: {i} / {data.shape[0]-1}, acc={correct / total:.4f}, loss={np.mean(losses):.4f}", end="\r")
 
     return correct / total, float(np.mean(losses))
 
