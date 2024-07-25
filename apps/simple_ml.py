@@ -263,9 +263,31 @@ def epoch_general_ptb(data, model, seq_len=40, loss_fn=nn.SoftmaxLoss(), opt=Non
         avg_loss: average loss over dataset
     """
     np.random.seed(4)
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+
+    model.eval() if opt is None else model.train()
+
+    losses = []
+    total = 0
+    correct = 0
+
+    for i in range(data.shape[0] - 1):
+        X, y = ndl.data.get_batch(data, i, seq_len, device=device)
+        logits, _ = model(X)
+        loss = loss_fn(logits, y)
+        losses.append(loss.numpy())
+        total += y.shape[0]
+        correct += np.sum(np.argmax(logits.numpy(), axis=1) == y.numpy())
+
+        if opt is not None:
+            loss.backward()
+            if clip is not None:
+                #ndl.nn.utils.clip_grad_norm_(model.parameters(), clip)
+                pass
+            opt.step()
+
+        print(f"Progress: {total} / {data.shape[0] * seq_len}", end="\r")
+
+    return correct / total, float(np.mean(losses))
 
 
 def train_ptb(model, data, seq_len=40, n_epochs=1, optimizer=ndl.optim.SGD,
@@ -290,9 +312,14 @@ def train_ptb(model, data, seq_len=40, n_epochs=1, optimizer=ndl.optim.SGD,
         avg_loss: average loss over dataset from last epoch of training
     """
     np.random.seed(4)
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+
+    opt = optimizer(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+    for epoch in range(n_epochs):
+        avg_acc, avg_loss = epoch_general_ptb(data, model, seq_len, loss_fn(), opt, clip, device, dtype)
+        print(f"Epoch {epoch + 1}: avg_acc={avg_acc:.4f}, avg_loss={avg_loss:.4f}")
+
+    return avg_acc, avg_loss
 
 
 def evaluate_ptb(model, data, seq_len=40, loss_fn=nn.SoftmaxLoss,
@@ -311,9 +338,11 @@ def evaluate_ptb(model, data, seq_len=40, loss_fn=nn.SoftmaxLoss,
         avg_loss: average loss over dataset
     """
     np.random.seed(4)
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+
+    avg_acc, avg_loss = epoch_general_ptb(data, model, seq_len, loss_fn(), device=device, dtype=dtype)
+    print(f"Test: avg_acc={avg_acc:.4f}, avg_loss={avg_loss:.4f}")
+
+    return avg_acc, avg_loss
 
 
 ### CODE BELOW IS FOR ILLUSTRATION, YOU DO NOT NEED TO EDIT
