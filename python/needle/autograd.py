@@ -175,6 +175,9 @@ class TensorTuple(Value):
     def tuple(self):
         return tuple([x for x in self])
 
+    def list(self):
+        return [x for x in self]
+
     def __repr__(self):
         return "needle.TensorTuple" + str(self.tuple())
 
