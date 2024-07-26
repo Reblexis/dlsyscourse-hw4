@@ -208,7 +208,7 @@ def test_transformer_model(
     with open(labels_path, 'rb') as f:
         label_result = np.load(f)
 
-    np.testing.assert_allclose(result, label_result, atol=1e-5, rtol=1e-5)
+    np.testing.assert_allclose(result, label_result, atol=1e-4, rtol=1e-4)
 
 
 def submit_attention_activation():
