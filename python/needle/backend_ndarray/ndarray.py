@@ -302,7 +302,6 @@ class NDArray:
 
         for (s, ns) in zip(self.shape, new_shape):
             assert s == ns or s == 1, f"Cannot broadcast shape {self.shape} to {new_shape}"
-        print("broadcasted")
         new_strides = tuple([self.strides[i] if self.shape[i] != 1 else 0 for i in range(len(new_shape))])
 
         return self.as_strided(new_shape, new_strides)

@@ -210,11 +210,20 @@ class AttentionLayer(Module):
         _, keys_values_len, k_dim = k.shape
         _, _, v_dim = v.shape
 
+        assert q_dim == k_dim == v_dim
+
         result = None
 
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        q = self.q_projection(self.prenorm_q(q.reshape((batch_size*queries_len, q_dim))))
+        k = self.k_projection(self.prenorm_k(k.reshape((batch_size*keys_values_len, k_dim))))
+        v = self.v_projection(self.prenorm_v(v.reshape((batch_size*keys_values_len, v_dim))))
+
+        q,k,v = [x.reshape((batch_size, queries_len, self.num_head, self.dim_head)).transpose((1, 2)) for x in [q,k,v]]
+
+        result, self.probs = self.attn(q, k, v)
+        result = result.transpose((1, 2)).reshape((batch_size, queries_len, self.num_head*self.dim_head))
+
+        result = self.out_projection(result.reshape((batch_size*queries_len,  self.num_head*self.dim_head))).reshape((batch_size, queries_len, self.out_features))
 
         return result
 
