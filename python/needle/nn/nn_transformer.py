@@ -6,8 +6,8 @@ import needle.init as init
 import numpy as np
 from .nn_sequence import Embedding
 from .nn_basic import (
-    Parameter, 
-    Module, 
+    Parameter,
+    Module,
     ReLU,
     Dropout,
     LayerNorm1d,
@@ -20,15 +20,15 @@ class MultiHeadAttention(Module):
     """
     The multi-head self attention module.
     """
-    def __init__(
-        self,
-        *,
-        dropout = 0.,
-        causal = False,
-        device = None,
-        dtype = "float32",
-    ):
 
+    def __init__(
+            self,
+            *,
+            dropout=0.,
+            causal=False,
+            device=None,
+            dtype="float32",
+    ):
         super().__init__()
 
         self.device = device
@@ -73,7 +73,7 @@ class MultiHeadAttention(Module):
 
     def softmax(self, logit):
         """
-        The softmax function; 
+        The softmax function;
         """
         max_val = Tensor(
             logit.realize_cached_data().max(axis=3),
@@ -94,8 +94,8 @@ class MultiHeadAttention(Module):
         return probs / denom
 
     def forward(
-        self,
-        q, k, v,
+            self,
+            q, k, v,
     ):
         """
         The forward function of the MultiHeadAttention activation function.
@@ -111,12 +111,13 @@ class MultiHeadAttention(Module):
         result = None
         probs = None
 
+        inner_matmul = self.matmul(q, k.transpose((2, 3))) * (q_dim ** (-0.5))
 
-        inner_matmul = self.matmul(q, k) / (q_dim ** 0.5)
         mask = self.create_causal_mask(queries_len, keys_values_len, device=self.device).broadcast_to(inner_matmul.shape)
         probs = self.softmax(inner_matmul + mask)
-        result = self.matmul(probs, v.transpose((2, 3)))
 
+        probs = self.dropout(probs)
+        result = self.matmul(probs, v)
 
         return result, probs
 
@@ -124,18 +125,18 @@ class MultiHeadAttention(Module):
 class AttentionLayer(Module):
 
     def __init__(
-        self,
-        q_features: int,
-        num_head: int,
-        dim_head: int,
-        *,
-        k_features: int = None,
-        v_features: int = None,
-        out_features: int = None,
-        dropout = 0.,
-        causal = True,
-        device = None,
-        dtype = "float32",
+            self,
+            q_features: int,
+            num_head: int,
+            dim_head: int,
+            *,
+            k_features: int = None,
+            v_features: int = None,
+            out_features: int = None,
+            dropout=0.,
+            causal=True,
+            device=None,
+            dtype="float32",
     ):
 
         super().__init__()
@@ -166,7 +167,7 @@ class AttentionLayer(Module):
             v_features, device=device, dtype=dtype)
 
         inner_dim = num_head * dim_head
-        
+
         self.q_projection = Linear(
             q_features, inner_dim, bias=False,
             device=device, dtype=dtype)
@@ -186,8 +187,8 @@ class AttentionLayer(Module):
             device=device, dtype=dtype)
 
     def forward(
-        self,
-        q, k=None, v=None,
+            self,
+            q, k=None, v=None,
     ):
         """
         The forward function of the self-attention layer.
@@ -218,18 +219,17 @@ class AttentionLayer(Module):
 class TransformerLayer(Module):
 
     def __init__(
-        self,
-        q_features: int,
-        num_head: int,
-        dim_head: int,
-        hidden_size: int,
-        *,
-        dropout = 0.,
-        causal = True,
-        device = None,
-        dtype = "float32",
+            self,
+            q_features: int,
+            num_head: int,
+            dim_head: int,
+            hidden_size: int,
+            *,
+            dropout=0.,
+            causal=True,
+            device=None,
+            dtype="float32",
     ):
-
         super().__init__()
 
         self.device = device
@@ -240,8 +240,8 @@ class TransformerLayer(Module):
         ### END YOUR SOLUTION
 
     def forward(
-        self,
-        x
+            self,
+            x
     ):
         """
         The forward function of a Transformer Layer.
@@ -261,19 +261,19 @@ class TransformerLayer(Module):
 class Transformer(Module):
 
     def __init__(
-        self,
-        embedding_size: int,
-        hidden_size: int,
-        num_layers: int, 
-        *,
-        num_head: int = 8,
-        dim_head: int = 32,
-        dropout = 0.,
-        causal = True,
-        device = None,
-        dtype = "float32",
-        batch_first = False,
-        sequence_len = 2048
+            self,
+            embedding_size: int,
+            hidden_size: int,
+            num_layers: int,
+            *,
+            num_head: int = 8,
+            dim_head: int = 32,
+            dropout=0.,
+            causal=True,
+            device=None,
+            dtype="float32",
+            batch_first=False,
+            sequence_len=2048
     ):
 
         super().__init__()
@@ -287,8 +287,8 @@ class Transformer(Module):
         ### END YOUR SOLUTION
 
     def forward(
-        self,
-        x, h=None
+            self,
+            x, h=None
     ):
 
         if not self.batch_first:
