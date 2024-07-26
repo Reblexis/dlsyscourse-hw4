@@ -113,8 +113,11 @@ class MultiHeadAttention(Module):
 
         inner_matmul = self.matmul(q, k.transpose((2, 3))) * (q_dim ** (-0.5))
 
-        mask = self.create_causal_mask(queries_len, keys_values_len, device=self.device).broadcast_to(inner_matmul.shape)
-        probs = self.softmax(inner_matmul + mask)
+        if self.causal:
+            mask = self.create_causal_mask(queries_len, keys_values_len, device=self.device).broadcast_to(inner_matmul.shape)
+            inner_matmul = inner_matmul + mask
+
+        probs = self.softmax(inner_matmul)
 
         probs = self.dropout(probs)
         result = self.matmul(probs, v)
